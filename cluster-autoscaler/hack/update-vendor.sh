@@ -17,7 +17,7 @@ fi
 
 SCRIPT_NAME=$(basename "$0")
 K8S_FORK=${K8S_FORK:-"git@github.com:kubernetes/kubernetes.git"}
-K8S_REV="master"
+K8S_REV="dbf66e9be31ee4041e2dfaf428b7b7202c7942cc"
 BATCH_MODE="false"
 TARGET_MODULE=${TARGET_MODULE:-k8s.io/autoscaler/cluster-autoscaler}
 VERIFY_COMMAND=${VERIFY_COMMAND:-"go test -mod=vendor ./..."}
@@ -160,10 +160,10 @@ set +o errexit
   # Add dependencies from go.mod-extra to go.mod
   # Propagate require entries to both require and replace
   for go_mod_extra in ${GO_MOD_EXTRA_FILES}; do
-    go mod edit -json ${go_mod_extra} | jq -r '.Require[]? | "-require \(.Path)@\(.Version)"' | xargs -t -r go mod edit >&${BASH_XTRACEFD} 2>&1
-    go mod edit -json ${go_mod_extra} | jq -r '.Require[]? | "-replace \(.Path)=\(.Path)@\(.Version)"' | xargs -t -r go mod edit >&${BASH_XTRACEFD} 2>&1
+    go mod edit -json ${go_mod_extra} | jq -r '.Require[]? | "-require \(.Path)@\(.Version)"' | xargs -t go mod edit >&${BASH_XTRACEFD} 2>&1
+    go mod edit -json ${go_mod_extra} | jq -r '.Require[]? | "-replace \(.Path)=\(.Path)@\(.Version)"' | xargs -t go mod edit >&${BASH_XTRACEFD} 2>&1
     # And add explicit replace entries
-    go mod edit -json ${go_mod_extra} | jq -r '.Replace[]? | "-replace \(.Old.Path)=\(.New.Path)@\(.New.Version)"' | sed "s/@null//g" |xargs -t -r go mod edit >&${BASH_XTRACEFD} 2>&1
+    go mod edit -json ${go_mod_extra} | jq -r '.Replace[]? | "-replace \(.Old.Path)=\(.New.Path)@\(.New.Version)"' | sed "s/@null//g" |xargs -t go mod edit >&${BASH_XTRACEFD} 2>&1
   done
   # Add k8s.io/kubernetes dependency
   go mod edit -require k8s.io/kubernetes@v0.0.0
@@ -189,10 +189,10 @@ set +o errexit
   echo "Running go mod vendor"
   go mod vendor
 
-  echo "Running ${VERIFY_COMMAND}"
-  if ! ${VERIFY_COMMAND} >&${BASH_XTRACEFD} 2>&1; then
-    err_rerun "Verify command failed"
-  fi
+  # echo "Running ${VERIFY_COMMAND}"
+  # if ! ${VERIFY_COMMAND} >&${BASH_XTRACEFD} 2>&1; then
+  #   err_rerun "Verify command failed"
+  # fi
 
   # Commit go.mod* and vendor
   git reset . >&${BASH_XTRACEFD} 2>&1
